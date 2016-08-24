@@ -26,8 +26,8 @@ var twitterClient = new Twitter({
 var randomLat;
 var randomLng;
 
-var lat = 48.1521976111993;
-var lng = 11.53635799884796;
+var lat = 48.152197611199;
+var lng = 11.5363579988479;
 
 var httpsOptionsCache = {
   hostname: 'cache.fastpokemap.se',
@@ -203,8 +203,8 @@ function getCache() {
     console.log(e);
   });
 
-  var min = 1000;
-  var max = 2000;
+  var min = 10000;
+  var max = 30000;
   var rdmW = Math.floor(Math.random() * (max - min + 1)) + min;
   setTimeout(function () {
     getAPI();
@@ -213,8 +213,8 @@ function getCache() {
 }
 function getAPI() {
   console.log('getting data');
-  var min = 0;
-  var max = 10;
+  var min = 1;
+  var max = 19;
   randomLat = Math.floor(Math.random() * (max - min + 1)) + min;
   randomLng = Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -226,9 +226,15 @@ function getAPI() {
 
   var poks = [];
   var req = https.request(httpsOptionsAPI, function(res) {
-    res.on('data', function(d) {
+    res.on('end', function(d) {
       getCache();
     });
+	res.on('error', function(e) {
+	      	  console.error(e);
+		  setTimeout(function () {
+		    getAPI();
+		  }, 60*15*1000);
+	 });
   });
   req.end();
   req.on('error', function(e) {
