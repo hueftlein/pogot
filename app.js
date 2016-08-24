@@ -67,9 +67,33 @@ var httpsOptionsAPI = {
 
 webshotOptions = {
   screenSize: {
-    width: 320,
-    height: 480
+    width: 1024,
+    height: 768
   }
+}
+
+var doShot = function(url, exp, dist, pok) {
+  var that = this;
+  that.url = url;
+  that.pok = pok;
+  that.exp = exp;
+  that.dist = dist;
+  that.onShot = function(err) {
+    var imgData = require('fs').readFileSync(that.pok.encounter_id+'.png');
+    console.log('tweeting');
+
+    twitterClient.post('media/upload', {media: imgData}, function(error, media, response) {
+      if(!error) {
+        twitterClient.post('statuses/update', {status: that.pok.pokemon_id+'\nbis: '+that.exp.toLocaleTimeString()+'\n'+that.dist+'m von AC\n'+that.url}, function(error, tweet, response) {
+          if (!error) {
+            console.log('tweeted');
+          }
+        });
+      }
+    });
+  };
+  webshot(that.url, that.pok.encounter_id+'.png', webshotOptions, that.onShot );
+  return that;
 }
 
 function getCache() {
@@ -106,23 +130,18 @@ function getCache() {
 
             for(var i=0;i<poks.length;i++) {
 
-              var url = 'https://www.google.de/maps/@'+poks[i].lnglat.coordinates[1]+','+poks[i].lnglat.coordinates[0]+',19z?hl=de';
+              var url = 'https://www.google.de/maps/@'+poks[i].lnglat.coordinates[1]+','+poks[i].lnglat.coordinates[0]+',15z?hl=de';
               console.log( url );
-              //webshot(url, 'google.png', webshotOptions, function(err) {
-              //  // screenshot now saved to google.png
-              //});
               var dist = geolib.getDistance(
                   {latitude: poks[i].lnglat.coordinates[1], longitude: poks[i].lnglat.coordinates[0]},
                   {latitude: 48.15219761119932, longitude: 11.536357998847963}
               );
               console.log(dist);  //expireAt: '2016-08-24T12:22:50.428Z'
-              if (dist<1000) {
+              if (dist<500) {
+
                 var exp = new Date(poks[i].expireAt);
-                twitterClient.post('statuses/update', {status: poks[i].pokemon_id+'\nbis: '+exp.toLocaleTimeString()+'\n'+dist+'m von AC\n'+url}, function(error, tweet, response) {
-                  if (!error) {
-                    console.log('tweeted');
-                  }
-                });
+                new doShot(url, exp, dist, poks[i]);
+
               }
 
             }
