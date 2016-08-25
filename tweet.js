@@ -12,19 +12,23 @@ var twitterClient = new Twitter({
   access_token_secret: 'eTPGYJG9hBXDVcAoXZVxAxj0fDDNyqWp5gv70hndCS59i'
 });
 
-exports.post = function (pokemon) {
+exports.Post = function (pokemon, callback) {
   console.log('tweeting!');
   image.create(pokemon, function(path) {
     var img = require('fs').readFileSync(path);
     twitterClient.post('media/upload', { media: img }, function(err, media, response) {
       if (err) { throw new Error(err); }
       var tweetData = {
-        status: names.numToName(names.idToNum(pokemon.pokemon_id)) + '\nbis: ' + pokemon.expiresAt.toLocaleTimeString() + '\n' + pokemon.dist+'m von AC\n',
+        status: names.numToName(names.idToNum(pokemon.pokemon_id)) + '\nbis: ' + pokemon.expiresAt.toLocaleTimeString() + '\n' + pokemon.distance+'m von AC\n',
         media_ids: media.media_id_string
       };
+      fs.unlinkSync(path);
       twitterClient.post('statuses/update', tweetData, function(err, tweet, response) {
         if (err) { throw new Error(err); }
         console.log('tweeted!');
+        if ( typeof callback == 'function' ) {
+          callback(pokemon);
+        }
       });
     });
   });

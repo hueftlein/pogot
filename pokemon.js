@@ -3,6 +3,7 @@
 var mongoose = require('mongoose');
 var geolib = require('geolib');
 var tweet = require('./tweet');
+var home = require('./home');
 
 mongoose.connect('mongodb://localhost/pokemons');
 
@@ -21,8 +22,9 @@ var pokemonSchema = new mongoose.Schema({
 pokemonSchema.pre('save', function(next) {
   this.distance = geolib.getDistance(
     { latitude: this.location.latitude, longitude: this.location.longitude },
-    { latitude: 48.15219761119932, longitude: 11.536357998847963 }
+    home.getExact()
   );
+  console.log('Distance: '+this.distance);
   next();
 });
 
@@ -34,22 +36,26 @@ exports.add = function(pokemon) {
       var newPokemon = new Pokemon(pokemon);
       newPokemon.save(function(err) {
         if (err) { throw new Error(err); }
+        console.log('added Pokemon!');
       });
     }
   });
 };
 
 exports.publish = function() {
-  Pokemon.find({tweeted: null}, function(err, pokemons) { //, distance:{$lt: 1000}
+  Pokemon.find({tweeted: null, distance:{$lt: 2000}}, function(err, pokemons) {
     if (err) { throw new Error(err); }
+    console.log('post',pokemons.length);
     for(var i=0;i<pokemons.length;i++) {
       try {
-        tweet.post(pokemons[i]);
-        var query = { encounter_id: pokemons[i].encounter_id };
-        var newData = { tweeted: new Date() };
-        Pokemon.findOneAndUpdate(query, newData, function(err, doc) {
-          if (err) { throw new Error(err); }
-          console.log('tweet saved!');
+        new tweet.Post(pokemons[i], function(pokemon) {
+          console.log(pokemon.encounter_id);
+          var query = { encounter_id: pokemon.encounter_id };
+          var newData = { tweeted: new Date() };
+          Pokemon.findOneAndUpdate(query, newData, function(err, doc) {
+            if (err) { throw new Error(err); }
+            console.log('tweet saved!');
+          });
         });
       } catch (err) {
         console.log(err);
