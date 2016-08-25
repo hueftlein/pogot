@@ -60,7 +60,7 @@ var getCache = function() {
       } catch(err) {
         throw new Error(err);
       }
-      if ( typeof result != 'object' || !result.length ) {
+      if ( typeof result != 'object' || !result instanceof Array ) {
         console.log(response.join(''));
         throw new Error('Error parsing result!');
       }

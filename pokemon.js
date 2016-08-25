@@ -43,7 +43,7 @@ exports.add = function(pokemon) {
 };
 
 exports.publish = function() {
-  Pokemon.find({tweeted: null, distance:{$lt: 2000}}, function(err, pokemons) {
+  Pokemon.find({tweeted: null, distance:{$lt: 2500}}, function(err, pokemons) {
     if (err) { throw new Error(err); }
     console.log('post',pokemons.length);
     for(var i=0;i<pokemons.length;i++) {
