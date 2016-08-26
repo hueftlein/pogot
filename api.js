@@ -10,7 +10,7 @@ var getOptions = function(host) {
     hostname: '%hst.fastpokemap.se'.replace(/%hst/g,host),
     port: 443,
     method: 'GET',
-    path: "/?key=678766ade6cca6165ff6ca6fb72aa4b0&ts=1472127126&compute=82.135.63.117&lat=%lat&lng=%lng".replace(/%lat/g,homeLoc.latitude).replace(/%lng/g,homeLoc.longitude),
+    path: "/?key=allow-all&ts=0&compute=127.0.0.1&lat=%lat&lng=%lng".replace(/%lat/g,homeLoc.latitude).replace(/%lng/g,homeLoc.longitude),
     headers: {
       ":authority": "%hst.fastpokemap.se".replace(/%hst/g,host),
       ":method": "GET",
@@ -28,12 +28,43 @@ var getOptions = function(host) {
 
 var getApi = function() {
   console.log('getting api');
-
   var options = getOptions('api');
   var req = https.request(options, function(res) {
-    res.on('data', function(d) {
+    var response = [];
+    res.on('data', function(chunk) {
       console.log('got api');
-      getCache();
+      if ( !response.length ) {
+        getCache();
+      }
+      response.push(chunk);
+    });
+    res.on('end', function() {
+      try {
+        var result = JSON.parse(response.join(''));
+      } catch(err) {
+        throw new Error(err);
+      }
+      if ( !result.result || !result.result instanceof Array ) {
+        console.log(response.join(''));
+        throw new Error('Error parsing result!');
+      }
+      result=result.result;
+      for(var i=0;i<result.length;i++) {
+        try {
+          var apiedPokemon = {
+            encounter_id: result[i].encounter_id,
+            pokemon_id: result[i].pokemon_id,
+            expiresAt: new Date(parseInt(result[i].expiration_timestamp_ms)),
+            location: {
+              latitude: result[i].latitude,
+              longitude: result[i].longitude
+            }
+          }
+          pokemon.add(apiedPokemon);
+        } catch(err) {
+          console.log('Error parsing Pokemon!', err);
+        }
+      }
     });
     res.on('error', function(err) {
       console.error(err);

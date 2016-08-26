@@ -16,7 +16,7 @@ exports.getRandom = function() {
       randomLatitudeOffset =  (Math.floor(Math.random() * (max - min + 1)) + min)/10000000000000,
       randomLongitudeOffset = (Math.floor(Math.random() * (max - min + 1)) + min)/10000000000000;
   return {
-    latitude: HOME_LATITUDE + randomLatitudeOffset,
-    longitude: HOME_LONGITUDE + randomLongitudeOffset
+    latitude: HOME_LATITUDE, //+ randomLatitudeOffset,
+    longitude: HOME_LONGITUDE //+ randomLongitudeOffset
   };
 }

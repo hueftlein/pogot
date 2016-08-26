@@ -2,6 +2,8 @@
 
 var api = require('./api');
 
+var UPDATE_OFFSET = 1000*2*60;
+
 process.on('uncaughtException', function (err) {
   console.log('Caught exception: ' + err);
 });
@@ -9,4 +11,4 @@ process.on('uncaughtException', function (err) {
 api.update();
 setTimeout(function () {
   api.update();
-}, 1000*5*60);
+}, UPDATE_OFFSET);

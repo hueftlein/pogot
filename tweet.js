@@ -5,6 +5,8 @@ var names = require('./names');
 var image = require('./image');
 var Twitter = require('twitter');
 
+var GMAPS_BASE_URL = 'https://www.google.de/maps/place/%lat+%lng/%lat,%lng';
+
 var twitterClient = new Twitter({
   consumer_key: 'ZZEt63oT45YmhmYYDVegAzpNn',
   consumer_secret: 'X6UQHGcZNc48uQJ5DPUVPCELEUk28wnuiCOATgQqZZ91W2uWOE',
@@ -19,7 +21,10 @@ exports.Post = function (pokemon, callback) {
     twitterClient.post('media/upload', { media: img }, function(err, media, response) {
       if (err) { throw new Error(err); }
       var tweetData = {
-        status: names.numToName(names.idToNum(pokemon.pokemon_id)) + '\nbis: ' + pokemon.expiresAt.toLocaleTimeString() + '\n' + pokemon.distance+'m von AC\n',
+        status: names.numToName(names.idToNum(pokemon.pokemon_id)) +
+                '\nbis: ' + pokemon.expiresAt.toLocaleTimeString() +
+                '\n' + pokemon.distance + 'm von AC\n' +
+                GMAPS_BASE_URL.replace(/%lat/g,pokemon.location.latitude).replace(/%lng/g,pokemon.location.longitude),
         media_ids: media.media_id_string
       };
       fs.unlinkSync(path);

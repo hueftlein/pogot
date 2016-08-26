@@ -5,10 +5,12 @@ var geolib = require('geolib');
 var tweet = require('./tweet');
 var home = require('./home');
 
+var MAX_DIST = 2500;
+
 mongoose.connect('mongodb://localhost/pokemons');
 
 var pokemonSchema = new mongoose.Schema({
-  encounter_id: String,
+  encounter_id: { type: String, unique: true },
   pokemon_id: String,
   expiresAt: Date,
   location: {
@@ -24,7 +26,6 @@ pokemonSchema.pre('save', function(next) {
     { latitude: this.location.latitude, longitude: this.location.longitude },
     home.getExact()
   );
-  console.log('Distance: '+this.distance);
   next();
 });
 
@@ -43,7 +44,7 @@ exports.add = function(pokemon) {
 };
 
 exports.publish = function() {
-  Pokemon.find({tweeted: null, distance:{$lt: 2500}}, function(err, pokemons) {
+  Pokemon.find({tweeted: null, distance:{$lt: MAX_DIST}, expiresAt:{$gt: new Date()}}, function(err, pokemons) {
     if (err) { throw new Error(err); }
     console.log('post',pokemons.length);
     for(var i=0;i<pokemons.length;i++) {
