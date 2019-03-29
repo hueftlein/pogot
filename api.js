@@ -4,6 +4,8 @@ var home = require('./home');
 var https = require('https');
 var pokemon = require('./pokemon');
 
+var UPDATE_OFFSET = 2*60*1000;
+
 var getOptions = function(host) {
   var homeLoc = home.getRandom();
   return {
@@ -50,19 +52,21 @@ var getApi = function() {
       }
       result=result.result;
       for(var i=0;i<result.length;i++) {
-        try {
-          var apiedPokemon = {
-            encounter_id: result[i].encounter_id,
-            pokemon_id: result[i].pokemon_id,
-            expiresAt: new Date(parseInt(result[i].expiration_timestamp_ms)),
-            location: {
-              latitude: result[i].latitude,
-              longitude: result[i].longitude
+        if ( result[i].expiration_timestamp_ms ) {
+          try {
+            var apiedPokemon = {
+              encounter_id: result[i].encounter_id,
+              pokemon_id: result[i].pokemon_id,
+              expiresAt: new Date(parseInt(result[i].expiration_timestamp_ms)),
+              location: {
+                latitude: result[i].latitude,
+                longitude: result[i].longitude
+              }
             }
+            pokemon.add(apiedPokemon);
+          } catch(err) {
+            console.log('Error parsing Pokemon!', err);
           }
-          pokemon.add(apiedPokemon);
-        } catch(err) {
-          console.log('Error parsing Pokemon!', err);
         }
       }
     });
@@ -122,4 +126,7 @@ var getCache = function() {
 
 exports.update = function() {
   getApi();
+  setTimeout(function () {
+    exports.update();
+  }, UPDATE_OFFSET);
 };

@@ -4,15 +4,23 @@ var fs = require('fs');
 var names = require('./names');
 var image = require('./image');
 var Twitter = require('twitter');
+var getenv = require('getenv');
 
 var GMAPS_BASE_URL = 'https://www.google.de/maps/place/%lat+%lng/%lat,%lng';
 
-var twitterClient = new Twitter({
-  consumer_key: 'ZZEt63oT45YmhmYYDVegAzpNn',
-  consumer_secret: 'X6UQHGcZNc48uQJ5DPUVPCELEUk28wnuiCOATgQqZZ91W2uWOE',
-  access_token_key: '768389002672177152-eFpDX83o3zyRBjuxjSZ0xo8aDXMtBKP',
-  access_token_secret: 'eTPGYJG9hBXDVcAoXZVxAxj0fDDNyqWp5gv70hndCS59i'
-});
+var twitterClient;
+
+try {
+  twitterClient = new Twitter({
+    consumer_key: getenv('TWITTER_CONSUMER_KEY'),
+    consumer_secret: getenv('TWITTER_CONSUMER_SECRET'),
+    access_token_key: getenv('TWITTER_TOKEN_KEY'),
+    access_token_secret: getenv('TWITTER_TOKEN_SECRET')
+  });
+} catch(e) {
+  console.log('Error creating twitterClient. Missing environment vars?',e);
+  process.exit(1);
+}
 
 exports.Post = function (pokemon, callback) {
   console.log('tweeting!');

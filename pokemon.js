@@ -5,7 +5,7 @@ var geolib = require('geolib');
 var tweet = require('./tweet');
 var home = require('./home');
 
-var MAX_DIST = 2500;
+var MAX_DIST = 100;
 
 mongoose.connect('mongodb://localhost/pokemons');
 
